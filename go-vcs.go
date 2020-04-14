@@ -21,6 +21,5 @@ var (
 )
 
 type Repository interface {
-	Type() RepoType
 	Clone() error
 }

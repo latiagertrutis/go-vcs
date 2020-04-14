@@ -17,12 +17,13 @@ import (
 	"sync"
 )
 
-func CallDuplicatedOutput(LogFile *os.File, Param ...string) error {
+func CallDuplicatedOutput(LogFile *os.File, Dir string, Param ...string) error {
 	var StdOutBuff, StderrBuff bytes.Buffer
 	var ErrStdOut, ErrStderr error
 	var sy sync.WaitGroup
 
 	cmd := exec.Command(Param[0], Param[1:]...)
+	cmd.Dir = Dir
 
 	stdoutIn, _ := cmd.StdoutPipe()
 	stderrIn, _ := cmd.StderrPipe()
@@ -75,11 +76,12 @@ func CallDuplicatedOutput(LogFile *os.File, Param ...string) error {
 	return nil
 }
 
-func CallPipedOutput(Param ...string) error {
+func CallPipedOutput(Dir string, Param ...string) error {
 	var ErrStdOut, ErrStderr error
 	var sy sync.WaitGroup
 
 	cmd := exec.Command(Param[0], Param[1:]...)
+	cmd.Dir = Dir
 
 	stdoutIn, _ := cmd.StdoutPipe()
 	stderrIn, _ := cmd.StderrPipe()

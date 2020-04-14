@@ -17,10 +17,10 @@ func NewSvnRepo(remote, local string) (*SvnRepo, error) {
 	return &SvnRepo{remote, local}, nil
 }
 
-func (r *SvnRepo) Type() RepoType {
-	return Svn
+func (r *SvnRepo) Clone() {
+	CallPipedOutput(".", "svn", "checkout", r.Remote, r.Local)
 }
 
-func (r *SvnRepo) Clone() {
-	CallPipedOutput("svn", "checkout", r.Remote, r.Local)
+func (r *SvnRepo) Checkout(commit string) {
+	CallPipedOutput(r.Local, "svn", "update", "-r", commit)
 }
