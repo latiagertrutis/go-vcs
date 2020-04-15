@@ -17,13 +17,10 @@ import (
 	"sync"
 )
 
-func CallDuplicatedOutput(LogFile *os.File, Dir string, Param ...string) error {
+func CallDuplicatedOutput(LogFile *os.File, cmd *exec.Cmd) error {
 	var StdOutBuff, StderrBuff bytes.Buffer
 	var ErrStdOut, ErrStderr error
 	var sy sync.WaitGroup
-
-	cmd := exec.Command(Param[0], Param[1:]...)
-	cmd.Dir = Dir
 
 	stdoutIn, _ := cmd.StdoutPipe()
 	stderrIn, _ := cmd.StderrPipe()
@@ -46,7 +43,7 @@ func CallDuplicatedOutput(LogFile *os.File, Dir string, Param ...string) error {
 	_, ErrStderr = io.Copy(stderr, stderrIn)
 	sy.Wait()
 
-	cmd.Wait()
+	cmd_err := cmd.Wait()
 
 	if ErrStdOut != nil || ErrStderr != nil {
 		fmt.Fprint(os.Stderr, "Error: failed to capture stdout and stderr from commnad\n")
@@ -72,16 +69,15 @@ func CallDuplicatedOutput(LogFile *os.File, Dir string, Param ...string) error {
 	if err != nil {
 		return err
 	}
-
+	if cmd_err != nil {
+		return cmd_err
+	}
 	return nil
 }
 
-func CallPipedOutput(Dir string, Param ...string) error {
+func CallPipedOutput(cmd *exec.Cmd) error {
 	var ErrStdOut, ErrStderr error
 	var sy sync.WaitGroup
-
-	cmd := exec.Command(Param[0], Param[1:]...)
-	cmd.Dir = Dir
 
 	stdoutIn, _ := cmd.StdoutPipe()
 	stderrIn, _ := cmd.StderrPipe()
@@ -101,14 +97,16 @@ func CallPipedOutput(Dir string, Param ...string) error {
 	_, ErrStderr = io.Copy(os.Stderr, stderrIn)
 	sy.Wait()
 
-	cmd.Wait()
+	err = cmd.Wait()
 
-	if ErrStdOut != nil || ErrStderr != nil {
-		fmt.Fprint(os.Stderr, "Error: failed to capture stdout and stderr from commnad\n")
-		if ErrStdOut != nil {
+	if ErrStdOut != nil || ErrStderr != nil || err != nil {
+		if err != nil {
+			return err
+		} else if ErrStdOut != nil {
 			return ErrStdOut
+		} else {
+			return ErrStderr
 		}
-		return ErrStderr
 	}
 	return nil
 }
