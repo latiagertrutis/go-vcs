@@ -22,4 +22,6 @@ var (
 
 type Repository interface {
 	Clone() error
+	Checkout(commit string) error
+	Pull() error
 }
