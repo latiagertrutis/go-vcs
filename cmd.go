@@ -76,37 +76,14 @@ func CallDuplicatedOutput(LogFile *os.File, cmd *exec.Cmd) error {
 }
 
 func CallPipedOutput(cmd *exec.Cmd) error {
-	var ErrStdOut, ErrStderr error
-	var sy sync.WaitGroup
 
-	stdoutIn, _ := cmd.StdoutPipe()
-	stderrIn, _ := cmd.StderrPipe()
-
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	err := cmd.Start()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: on cmd.Start(): %s\n", err)
 		return err
 	}
 
-	sy.Add(1)
-	go func() {
-		_, ErrStdOut = io.Copy(os.Stdout, stdoutIn)
-		sy.Done()
-	}()
-
-	_, ErrStderr = io.Copy(os.Stderr, stderrIn)
-	sy.Wait()
-
-	err = cmd.Wait()
-
-	if ErrStdOut != nil || ErrStderr != nil || err != nil {
-		if err != nil {
-			return err
-		} else if ErrStdOut != nil {
-			return ErrStdOut
-		} else {
-			return ErrStderr
-		}
-	}
-	return nil
+	return cmd.Wait()
 }
